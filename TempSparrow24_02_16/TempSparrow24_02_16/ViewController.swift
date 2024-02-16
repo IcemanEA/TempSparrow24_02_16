@@ -5,43 +5,61 @@
 //  Created by Egor Ledkov on 16.02.2024.
 //
 
-#if DEBUG
-import SwiftUI
-#endif
-
 import UIKit
 
 class ViewController: UIViewController {
 
+	private lazy var jumpingView: UIView = makeView()
+	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		view.backgroundColor = .systemBackground
-	}
-}
-
-// MARK: - PreviewProvider
-
-#if DEBUG
-struct MainViewControllerProvider: PreviewProvider {
-	static var previews: some View {
-		ViewController()
-			.preview()
-	}
-}
-
-extension UIViewController {
-	struct Preview: UIViewControllerRepresentable {
-		let viewController: UIViewController
 		
-		func makeUIViewController(context: Context) -> some UIViewController {
-			viewController
-		}
+		view.addSubview(jumpingView)
 		
-		func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) { }
+		let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+		view.addGestureRecognizer(tapGesture)
 	}
 	
-	func preview( ) -> some View {
-		Preview(viewController: self)
+	@objc private func handleTap(gesture: UITapGestureRecognizer) {
+		let location = gesture.location(in: view)
+		
+		let angle = location.x < jumpingView.center.x ? -0.3 : 0.3
+		
+		UIView.animate(
+			withDuration: 0.5,
+			delay: 0,
+			usingSpringWithDamping: 0.6,
+			initialSpringVelocity: 0.5,
+			options: .curveEaseInOut
+		) {
+			self.jumpingView.center = location
+			self.jumpingView.transform = CGAffineTransform(rotationAngle: angle)
+		}
+		
+		UIView.animate(
+			withDuration: 0.25,
+			delay: 0.25,
+			usingSpringWithDamping: 0.6,
+			initialSpringVelocity: 0.5,
+			options: .curveEaseInOut
+		) {
+			self.jumpingView.transform = CGAffineTransform.identity
+		}
+	}
+	
+	private func makeView() -> UIView {
+		let frame = CGRect(
+			x: self.view.frame.midX - 50,
+			y: self.view.frame.midY - 50,
+			width: 100,
+			height: 100
+		)
+		
+		let view = UIView(frame: frame)
+		view.backgroundColor = .tintColor
+		view.layer.cornerRadius = 10
+		
+		return view
 	}
 }
-#endif
