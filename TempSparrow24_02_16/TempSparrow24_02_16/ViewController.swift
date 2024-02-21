@@ -2,64 +2,46 @@
 //  ViewController.swift
 //  TempSparrow24_02_16
 //
-//  Created by Egor Ledkov on 16.02.2024.
+//  Created by Egor Ledkov on 21.02.2024.
 //
 
 import UIKit
 
-class ViewController: UIViewController {
-
-	private lazy var jumpingView: UIView = makeView()
+final class ViewController: UIViewController {
+	
+	private let squareView = UIView()
+	
+	private var animator: UIDynamicAnimator?
+	private var snapBehavior: UISnapBehavior?
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
 		view.backgroundColor = .systemBackground
 		
-		view.addSubview(jumpingView)
+		view.addSubview(squareView)
+		squareView.backgroundColor = .systemBlue
+		squareView.layer.cornerCurve = .continuous
+		squareView.layer.cornerRadius = 8
+		squareView.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+		squareView.center = CGPoint(x: view.frame.midX, y: view.frame.midY)
+		
+		animator = UIDynamicAnimator(referenceView: view)
 		
 		let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
 		view.addGestureRecognizer(tapGesture)
 	}
 	
-	@objc private func handleTap(gesture: UITapGestureRecognizer) {
-		let location = gesture.location(in: view)
+	@objc private func handleTap(sender: UITapGestureRecognizer) {
+		let tapPoint =  sender.location(in: view)
 		
-		let angle = location.x < jumpingView.center.x ? -0.25 : 0.25
-		
-		UIView.animate(
-			withDuration: 0.5,
-			delay: 0,
-			usingSpringWithDamping: 0.6,
-			initialSpringVelocity: 0.5,
-			options: .curveEaseInOut
-		) {
-			self.jumpingView.center = location
-			self.jumpingView.transform = CGAffineTransform(rotationAngle: angle)
+		if let snapBehavior = self.snapBehavior {
+			animator?.removeBehavior(snapBehavior)
 		}
 		
-		UIView.animate(
-			withDuration: 0.25,
-			delay: 0.25,
-			usingSpringWithDamping: 0.6,
-			initialSpringVelocity: 0.5,
-			options: .curveEaseInOut
-		) {
-			self.jumpingView.transform = CGAffineTransform.identity
-		}
-	}
-	
-	private func makeView() -> UIView {
-		let frame = CGRect(
-			x: self.view.frame.midX - 50,
-			y: self.view.frame.midY - 50,
-			width: 100,
-			height: 100
-		)
+		let snapBehavior = UISnapBehavior(item: squareView, snapTo: tapPoint)
+		snapBehavior.damping = 0.9
+		animator?.addBehavior(snapBehavior)
 		
-		let view = UIView(frame: frame)
-		view.backgroundColor = .tintColor
-		view.layer.cornerRadius = 10
-		
-		return view
+		self.snapBehavior = snapBehavior
 	}
 }
